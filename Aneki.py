@@ -1,3 +1,4 @@
+# meta developer: @EPEMEN
 from requests import get
 from random import choice
 from hikkatl.types import Message
