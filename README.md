@@ -4,6 +4,7 @@
 
 - [Aneki.py](https://github.com/eremeyko/ne_Hikka/blob/master/Aneki.py) - Генерирует анекдоты по разным тематикам.
 - [AI Hikka.py](https://github.com/eremeyko/ne_Hikka/blob/master/AI%20Hikka.py) - ИИ-ассистент для Хикки. Использует API Groq.
+- [Pass Gen.py](https://github.com/eremeyko/ne_Hikka/blob/master/Passgen.py) - Генератор паролей. От 5 до 2000 символов (не наглейте).
 
 ---
 
