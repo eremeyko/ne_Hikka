@@ -12,7 +12,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 # Original repository: https://github.com/eremeyko/ne_Hikka
-# meta developer: @EPEMEN
+# meta developer: @eremod
 from requests import get
 from random import choice
 from hikkatl.types import Message
