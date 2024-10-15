@@ -1,11 +1,11 @@
-__version__ = (1, 2, 8)
+__version__ = (1, 2, 9)
 # meta developer: @eremod
-#       
 #
-#	.----..----. .----..-.   .-. .----. .----. 
+#
+#	.----..----. .----..-.   .-. .----. .----.
 #	| {_  | {}  }| {_  |  `.'  |/  {}  \| {}  \
 #	| {__ | .-. \| {__ | |\ /| |\      /|     /
-#	`----'`-' `-'`----'`-' ` `-' `----' `----' 
+#	`----'`-' `-'`----'`-' ` `-' `----' `----'
 #
 #              	© Copyright 2024
 #          	https://t.me/eremod
@@ -33,10 +33,10 @@ class YaKeyGPT(loader.Module):
 
     strings_ = {
         "name": "YaKeyGPT",
-		"no_response": "<emoji document_id=5226660202035554522>✖️</emoji> Error: no text to correct.",
-		"ya_set_fix": "No fix methods were specified, default method set: fix.",
-		"auto_fix_enabled": "<emoji document_id=5188216731453103384>✔️</emoji> Auto-correction is enabled with methods: {}.",
-		"auto_fix_disabled": "<emoji document_id=5226660202035554522>✖️</emoji> Auto-correction is disabled.",
+        "no_response": "<emoji document_id=5226660202035554522>✖️</emoji> Error: no text to correct.",
+        "ya_set_fix": "No fix methods were specified, default method set: fix.",
+        "auto_fix_enabled": "<emoji document_id=5188216731453103384>✔️</emoji> Auto-correction is enabled with methods: {}.",
+        "auto_fix_disabled": "<emoji document_id=5226660202035554522>✖️</emoji> Auto-correction is disabled.",
     }
 
     def __init__(self):
@@ -48,10 +48,10 @@ class YaKeyGPT(loader.Module):
                 validator=loader.validators.MultiChoice(["rewrite", "fix", "emoji"]),
             ),
         )
-    
+
     async def client_ready(self, client, db):
-    	self.client = client
-    	self.prefix = self.get_prefix()
+        self.client = client
+        self.prefix = self.get_prefix()
 
     async def send_request(self, method, text):
         url = f"https://keyboard.yandex.net/gpt/{method}"
@@ -69,8 +69,8 @@ class YaKeyGPT(loader.Module):
 
     async def process_command(self, method, message: Message):
         reply = await message.get_reply_message()
-	if not reply.text or not message.text:
-		return
+        if not reply.text or not message.text:
+            return
         text_to_correct = reply.text if reply else message.text.split(maxsplit=1)[1] if message.text.startswith(self.prefix) else message.text
 
         response_data = await self.send_request(method, text_to_correct)
@@ -94,38 +94,36 @@ class YaKeyGPT(loader.Module):
         corrected_text = await self.process_command("emoji", message)
         await utils.answer(message, corrected_text)
 
-
     @loader.command(ru_doc=" — Включает или выключает методы исправления.")
     async def yaset(self, message: Message):
         """ — Enables or disables correction methods."""
         state = not self.get("yatext", False)
         self.set("yatext", state)
-    
+
         if not self.config["auto_methods"]:
             self.config["auto_methods"] = ["fix"]
             await utils.answer(message, self.strings["ya_set_fix"])
             return
-    
+
         if state:
             status_message = self.strings["auto_fix_enabled"].format(", ".join(self.config["auto_methods"]))
         else:
             status_message = self.strings["auto_fix_disabled"]
-    
-        await utils.answer(message, status_message)
 
+        await utils.answer(message, status_message)
 
     async def watcher(self, message: Message):
         if not self.get("yatext", False):
             return
-    
+
         if message.out:
             text = message.text
             if text.startswith(self.prefix):
-            	return
+                return
             methods = self.config["auto_methods"]
 
             for method in methods:
                 response_data = await self.send_request(method, text)
                 text = response_data.get("response", self.strings["no_response"])
-            
+
             await utils.answer(message, text)
