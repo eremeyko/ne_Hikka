@@ -7,9 +7,13 @@
 - [Pass Gen.py](https://github.com/eremeyko/ne_Hikka/blob/master/Passgen.py) - Генератор паролей. От 5 до 2000 символов (не наглейте).
 - [Crib.py](https://github.com/eremeyko/ne_Hikka/blob/master/crib.py) - Меняет все гласные на 'i'.
 - [BIO Audio](https://github.com/eremeyko/ne_Hikka/blob/master/BIO%20Audio.py) - Трансляция играющей музыки в БИО Телеграмма (ВК, Яндекс и тд.).
+- [YaKeyGPT](https://github.com/eremeyko/ne_Hikka/blob/master/YaKeyGPT.py) - Исправление текста на основе ИИ Яндекса.
 ---
 
 **О разработчике:**
 
-Разработчик модулей - [eremeyko](https://github.com/eremeyko). 
+Разработчик модулей - [eremeyko](https://github.com/eremeyko).
+
+ТГ Канал - [Ere Modules](https://t.me/eremod).
+
 Если у вас есть вопросы или предложения, пожалуйста, обращайтесь в Телеграм: [@EPEMEN](https://t.me/EPEMEN).
