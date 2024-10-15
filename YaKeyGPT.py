@@ -69,7 +69,7 @@ class YaKeyGPT(loader.Module):
 
     async def process_command(self, method, message: Message):
         reply = await message.get_reply_message()
-        text_to_correct = reply.text if reply else message.text.split(maxsplit=1)[1] if message.text.startswith(".") else message.text
+        text_to_correct = reply.text if reply else message.text.split(maxsplit=1)[1] if message.text.startswith(self.prefix) else message.text
 
         response_data = await self.send_request(method, text_to_correct)
         return response_data.get("response", self.strings["no_response"])
