@@ -1,4 +1,4 @@
-__version__ = (1, 2, 9)
+__version__ = (1, 3, 0)
 # meta developer: @eremod
 #
 #
@@ -29,14 +29,16 @@ class YaKeyGPT(loader.Module):
         "ya_set_fix": "Методы исправления не были указаны, установлен метод по умолчанию: fix.",
         "auto_fix_enabled": "<emoji document_id=5188216731453103384>✔️</emoji> Автоисправление включено с методами: {}.",
         "auto_fix_disabled": "<emoji document_id=5226660202035554522>✖️</emoji> Автоисправление выключено.",
+        "no_text_error": "<emoji document_id=5226660202035554522>✖️</emoji> Ошибка: отсутствует текст или ответ для исправления."
     }
 
-    strings_ = {
+    strings = {
         "name": "YaKeyGPT",
         "no_response": "<emoji document_id=5226660202035554522>✖️</emoji> Error: no text to correct.",
         "ya_set_fix": "No fix methods were specified, default method set: fix.",
         "auto_fix_enabled": "<emoji document_id=5188216731453103384>✔️</emoji> Auto-correction is enabled with methods: {}.",
         "auto_fix_disabled": "<emoji document_id=5226660202035554522>✖️</emoji> Auto-correction is disabled.",
+        "no_text_error": "<emoji document_id=5226660202035554522>✖️</emoji> Error: no text or reply to correct."
     }
 
     def __init__(self):
@@ -69,8 +71,10 @@ class YaKeyGPT(loader.Module):
 
     async def process_command(self, method, message: Message):
         reply = await message.get_reply_message()
-        if not reply.text or not message.text:
-            return
+        if (reply is None or not reply.text) and (not message.text or len(message.text.split()) <= 1):
+            await utils.answer(message, self.strings["no_text_error"])
+            return None
+
         text_to_correct = reply.text if reply else message.text.split(maxsplit=1)[1] if message.text.startswith(self.prefix) else message.text
 
         response_data = await self.send_request(method, text_to_correct)
@@ -80,19 +84,22 @@ class YaKeyGPT(loader.Module):
     async def qfix(self, message: Message):
         """<answer/text> — Quickly corrects text."""
         corrected_text = await self.process_command("fix", message)
-        await utils.answer(message, corrected_text)
+        if corrected_text:  # Проверяем, есть ли исправленный текст
+            await utils.answer(message, corrected_text)
 
     @loader.command(ru_doc="<ответ/текст> — Быстро перепишет текст")
     async def qrewrite(self, message: Message):
         """<answer/text> - Will quickly rewrite the text."""
         corrected_text = await self.process_command("rewrite", message)
-        await utils.answer(message, corrected_text)
+        if corrected_text:
+            await utils.answer(message, corrected_text)
 
     @loader.command(ru_doc="<ответ/текст> — Добавит эмодзи на твой текст😊")
     async def qemoji(self, message: Message):
         """ <answer/text> — Will add emoji to your text😊."""
         corrected_text = await self.process_command("emoji", message)
-        await utils.answer(message, corrected_text)
+        if corrected_text:
+            await utils.answer(message, corrected_text)
 
     @loader.command(ru_doc=" — Включает или выключает методы исправления.")
     async def yaset(self, message: Message):
