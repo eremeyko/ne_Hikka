@@ -8,6 +8,7 @@
 - [Crib.py](https://github.com/eremeyko/ne_Hikka/blob/master/crib.py) - Меняет все гласные на 'i'.
 - [BIO Audio](https://github.com/eremeyko/ne_Hikka/blob/master/BIO%20Audio.py) - Трансляция играющей музыки в БИО Телеграмма (ВК, Яндекс и тд.).
 - [YaKeyGPT](https://github.com/eremeyko/ne_Hikka/blob/master/YaKeyGPT.py) - Исправление текста на основе ИИ Яндекса.
+- [LazyTikTok](https://github.com/eremeyko/ne_Hikka/blob/master/LazyTikTok.py) - Скачивает Видео и Музыку из ТикТока
 ---
 
 **О разработчике:**
