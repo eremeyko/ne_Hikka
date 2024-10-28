@@ -1,4 +1,4 @@
-__version__ = (1, 2, 0)
+__version__ = (1, 2, 1)
 # meta developer: @eremod
 #
 #
@@ -22,7 +22,7 @@ from hikkatl.types import Message
 from .. import loader, utils
 
 UPDATE_URL = (
-    'https://github.com/eremeyko/ne_Hikka/raw/refs/heads/master/LazyTikTok.py'
+    'https://raw.githubusercontent.com/eremeyko/ne_Hikka/refs/heads/master/LazyTikTok.py'
 )
 
 
