@@ -1,4 +1,4 @@
-__version__ = (1, 7, 6)
+__version__ = (1, 7, 7)
 # meta developer: @eremod
 #
 #
@@ -53,7 +53,7 @@ class LazyYT(loader.Module):
         "your_video": (
             "<emoji document_id=5775981206319402773>🎞</emoji> <b>Here's your Audio:</b>\n"
             "{name}\n<emoji document_id=6019295596173596341>👁</emoji> <b>Quality: </b>{quality} | "
-            "<emoji document_id=5247213725080890199>©️</emoji> <b>Author:</b>{author}"
+            "<emoji document_id=5247213725080890199>©️</emoji> <b>Author: </b>{author}"
         ),
         "no_audio": (
             "<emoji document_id=5222472119295684375>🎶</emoji><b>Unfortunately,"
@@ -62,7 +62,7 @@ class LazyYT(loader.Module):
         "your_audio": (
             "<emoji document_id=5775981206319402773>🎞</emoji> <b>Here's your audio:</b>\n"
             "{name}\n<emoji document_id=6019295596173596341>👁</emoji> <b>Quality: </b>{quality} | "
-            "<emoji document_id=5247213725080890199>©️</emoji> <b>Author:</b>{author}"
+            "<emoji document_id=5247213725080890199>©️</emoji> <b>Author: </b>{author}"
         ),
         "searching_video": "<emoji document_id=5258274739041883702>🔍</emoji> Search your video...",
         "searching_audio": "<emoji document_id=5258274739041883702>🔍</emoji> Search your audio...",
@@ -88,7 +88,7 @@ class LazyYT(loader.Module):
         "your_video": (
             "<emoji document_id=5775981206319402773>🎞</emoji> <b>Вот Ваше видео:</b>\n"
             "{name}\n<emoji document_id=6019295596173596341>👁</emoji> <b>Качество: </b>{quality} | "
-            "<emoji document_id=5247213725080890199>©️</emoji> <b>Автор:</b>{author}"
+            "<emoji document_id=5247213725080890199>©️</emoji> <b>Автор: </b>{author}"
         ),
         "no_audio": (
             "<emoji document_id=5222472119295684375>🎶</emoji>"
@@ -97,7 +97,7 @@ class LazyYT(loader.Module):
         "your_audio": (
             "<emoji document_id=5775981206319402773>🎞</emoji> <b>Вот Ваше аудио:</b>\n"
             "{name}\n<emoji document_id=6019295596173596341>👁</emoji> <b>Качество: </b>{quality} | "
-            "<emoji document_id=5247213725080890199>©️</emoji> <b>Автор:</b>{author}"
+            "<emoji document_id=5247213725080890199>©️</emoji> <b>Автор: </b>{author}"
         ),
         "searching_video": "<emoji document_id=5258274739041883702>🔍</emoji> Идёт поиск видео...",
         "searching_audio": "<emoji document_id=5258274739041883702>🔍</emoji> Идёт поиск аудио...",
@@ -183,12 +183,12 @@ class LazyYT(loader.Module):
             try:
                 if event.message.from_id == self.godzilla_bot_id:
                     if event.message.photo and event.message.reply_markup:
+                        buttons = event.message.reply_markup.rows[-2].buttons
                         self.current_video_name = event.message.text.split("\n")[0]
                         self.current_video_quality = buttons[0].text.split("-")[0][2:]
                         self.current_video_author = event.message.text.split("\n")[3][
                             2:
                         ]
-                        buttons = event.message.reply_markup.rows[-2].buttons
                         if len(buttons):
                             await event.message.click((-2 if not mp3 else -1), 0)
             except Exception as e:
