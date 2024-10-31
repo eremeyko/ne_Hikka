@@ -1,4 +1,4 @@
-__version__ = (1, 7, 5)
+__version__ = (1, 7, 6)
 # meta developer: @eremod
 #
 #
@@ -37,7 +37,7 @@ UPDATE_URL: str = (
 
 @loader.tds
 class LazyYT(loader.Module):
-    """Download video from YouTube with bot @Godzilla_bot"""
+    """Download video from YouTube with bot @Gozilla_bot"""
 
     strings = {
         "name": "LazyYouTube",
@@ -184,15 +184,13 @@ class LazyYT(loader.Module):
                 if event.message.from_id == self.godzilla_bot_id:
                     if event.message.photo and event.message.reply_markup:
                         self.current_video_name = event.message.text.split("\n")[0]
+                        self.current_video_quality = buttons[0].text.split("-")[0][2:]
+                        self.current_video_author = event.message.text.split("\n")[3][
+                            2:
+                        ]
                         buttons = event.message.reply_markup.rows[-2].buttons
                         if len(buttons):
                             await event.message.click((-2 if not mp3 else -1), 0)
-                            self.current_video_quality = buttons[0].text.split("-")[0][
-                                2:
-                            ]
-                            self.current_video_author = event.message.text.split("\n")[
-                                3
-                            ][2:]
             except Exception as e:
                 logger.exception(f"[LazyYouTube] Ошибка при получении видео:\n{e}")
 
@@ -218,6 +216,7 @@ class LazyYT(loader.Module):
         except asyncio.TimeoutError:
             await to_bot.delete()
             m_video = None
+            m_audio = None
         finally:
             self.client.remove_event_handler(get_quality_handler)
             self.client.remove_event_handler(get_video_handler)
