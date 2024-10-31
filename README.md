@@ -10,6 +10,7 @@
 - [YaKeyGPT](https://github.com/eremeyko/ne_Hikka/blob/master/YaKeyGPT.py) - Исправление текста на основе ИИ Яндекса.
 - [LazyTikTok](https://github.com/eremeyko/ne_Hikka/blob/master/LazyTikTok.py) - Скачивает Видео и Музыку из ТикТока.
 - [huificinator](https://github.com/eremeyko/ne_Hikka/blob/master/huificinator.py) - "Хуифицирует" сообщения.
+- [LazyYouTube](https://github.com/eremeyko/ne_Hikka/blob/master/LazyYouTube.py) - Скачивает Видео и Аудио из Ютуба.
 ---
 
 **О разработчике:**
