@@ -1,4 +1,4 @@
-__version__ = (1, 7, 7)
+__version__ = (1, 7, 8)
 # meta developer: @eremod
 #
 #
@@ -117,8 +117,8 @@ class LazyYT(loader.Module):
         self.current_video_quality: str = ""
         self.current_video_author: str = ""
 
-        self.godzilla_bot_username: str = "Gozilla_bot"
-        self.godzilla_bot_id: int = None
+        self.gozilla_bot_username: str = "Gozilla_bot"
+        self.gozilla_bot_id: int = None
 
     @loader.loop(interval=10800, autostart=True, wait_before=False)
     async def check_for_updates(self) -> None:
@@ -149,12 +149,12 @@ class LazyYT(loader.Module):
 
     async def client_ready(self, client: CustomTelegramClient, db: Database) -> None:
         self.client = client
-        self.godzilla_bot = await self.client.get_entity(self.godzilla_bot_username)
-        self.godzilla_bot_id = self.godzilla_bot.id
+        self.gozilla_bot = await self.client.get_entity(self.gozilla_bot_username)
+        self.gozilla_bot_id = self.gozilla_bot.id
 
         history = await self.client(
             messages.SearchRequest(
-                peer=self.godzilla_bot,
+                peer=self.gozilla_bot,
                 q=" ",
                 filter=InputMessagesFilterEmpty(),
                 min_date=None,
@@ -167,8 +167,9 @@ class LazyYT(loader.Module):
                 hash=0,
             )
         )
-        if not history.messages:
-            await self.client.send_message(entity=self.godzilla_bot, message="/start")
+
+        if not hasattr(history, "count"):
+            await self.client.send_message(entity=self.gozilla_bot, message="/start")
             await utils.dnd(self.client, peer=PeerUser(841589476), archive=False)
 
     async def _find_by_url(self, name: str, mp3: bool = False) -> Optional[Message]:
@@ -176,12 +177,12 @@ class LazyYT(loader.Module):
         m_video: Optional[Message] = None
         e_trigger = asyncio.Event()
 
-        to_bot = await self.client.send_message(self.godzilla_bot, name)
+        to_bot = await self.client.send_message(self.gozilla_bot, name)
 
         async def get_quality_handler(event: events.NewMessage.Event) -> None:
             nonlocal m_video
             try:
-                if event.message.from_id == self.godzilla_bot_id:
+                if event.message.from_id == self.gozilla_bot_id:
                     if event.message.photo and event.message.reply_markup:
                         buttons = event.message.reply_markup.rows[-2].buttons
                         self.current_video_name = event.message.text.split("\n")[0]
@@ -196,7 +197,7 @@ class LazyYT(loader.Module):
 
         async def get_video_handler(event: events.NewMessage.Event) -> None:
             nonlocal m_video, m_audio
-            if event.message.from_id == self.godzilla_bot_id:
+            if event.message.from_id == self.gozilla_bot_id:
                 if mp3:
                     if event.message.audio:
                         m_audio = event.message
