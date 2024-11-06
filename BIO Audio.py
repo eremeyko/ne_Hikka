@@ -1,4 +1,4 @@
-__version__ = (1, 6, 7)
+__version__ = (1, 6, 8)
 
 # meta developer: @eremod
 # Отдельная благодарность: @stupid_alien_mods
@@ -18,8 +18,6 @@ __version__ = (1, 6, 7)
 
 import asyncio
 import logging
-
-from hikkatl.tl.types import PeerChat
 
 from .. import loader, utils
 from ..tl_cache import CustomTelegramClient  # type: ignore
@@ -307,6 +305,7 @@ class LastFM(loader.Module):
             async with ClientSession() as session:
                 async with session.get(UPDATE_URL) as response:
                     new_version_str = await response.text()
+                    new_version_str = new_version_str.split("\n")[0]
                     if new_version_str.startswith("__version__"):
                         version_tuple = literal_eval(
                             new_version_str.split("=")[1].strip()
