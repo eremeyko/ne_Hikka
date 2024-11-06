@@ -1,3 +1,3 @@
-__version__ = (1,5,0)
+__version__ = (1,6,7)
 # meta developer: @eremod
 # In work...
