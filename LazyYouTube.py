@@ -1,4 +1,4 @@
-__version__ = (1, 7, 8)
+__version__ = (1, 8, 0)
 # meta developer: @eremod
 #
 #
@@ -16,6 +16,7 @@ __version__ = (1, 7, 8)
 
 import asyncio
 import logging
+from ast import literal_eval
 
 from .. import utils, loader
 from aiohttp import ClientSession
@@ -25,10 +26,15 @@ from ..database import Database  # type: ignore
 
 from hikkatl.errors import YouBlockedUserError
 from hikkatl.functions import messages
-from hikkatl.types import Message, PeerUser, InputMessagesFilterEmpty
+from hikkatl.types import (
+    Message,
+    PeerUser,
+    InputMessagesFilterEmpty,
+    TypeInputPeer,
+)
 from telethon import events
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(f"LazyYT | {__version__}")
 
 UPDATE_URL: str = (
     "https://raw.githubusercontent.com/eremeyko/ne_Hikka/refs/heads/master/LazyYouTube.py"
@@ -51,7 +57,8 @@ class LazyYT(loader.Module):
             "it was not possible to get the video.</b>"
         ),
         "your_video": (
-            "<emoji document_id=5775981206319402773>🎞</emoji> <b>Here's your Audio:</b>\n"
+            "<emoji document_id=5775981206319402773>🎞</emoji> "
+            '<b>Here\'s Your <a href="{link}">video:</b></a>\n'
             "{name}\n<emoji document_id=6019295596173596341>👁</emoji> <b>Quality: </b>{quality} | "
             "<emoji document_id=5247213725080890199>©️</emoji> <b>Author: </b>{author}"
         ),
@@ -60,8 +67,8 @@ class LazyYT(loader.Module):
             "it was not possible to get the audio.</b>"
         ),
         "your_audio": (
-            "<emoji document_id=5775981206319402773>🎞</emoji> <b>Here's your audio:</b>\n"
-            "{name}\n<emoji document_id=6019295596173596341>👁</emoji> <b>Quality: </b>{quality} | "
+            "<emoji document_id=5775981206319402773>🎞</emoji> "
+            '<b>Here\'s Your <a href="{link}">audio:</b></a>\n{name}\n'
             "<emoji document_id=5247213725080890199>©️</emoji> <b>Author: </b>{author}"
         ),
         "searching_video": "<emoji document_id=5258274739041883702>🔍</emoji> Search your video...",
@@ -86,7 +93,8 @@ class LazyYT(loader.Module):
             "<b>К сожалению, не удалось получить видео.</b>"
         ),
         "your_video": (
-            "<emoji document_id=5775981206319402773>🎞</emoji> <b>Вот Ваше видео:</b>\n"
+            "<emoji document_id=5775981206319402773>🎞</emoji> "
+            '<b>Вот Ваше <a href="{link}">видео:</b></a>\n'
             "{name}\n<emoji document_id=6019295596173596341>👁</emoji> <b>Качество: </b>{quality} | "
             "<emoji document_id=5247213725080890199>©️</emoji> <b>Автор: </b>{author}"
         ),
@@ -95,8 +103,8 @@ class LazyYT(loader.Module):
             "<b>К сожалению, не удалось получить аудио.</b>"
         ),
         "your_audio": (
-            "<emoji document_id=5775981206319402773>🎞</emoji> <b>Вот Ваше аудио:</b>\n"
-            "{name}\n<emoji document_id=6019295596173596341>👁</emoji> <b>Качество: </b>{quality} | "
+            "<emoji document_id=5775981206319402773>🎞</emoji> "
+            '<b>Вот Ваше <a href="{link}">аудио:</b></a>\n{name}\n'
             "<emoji document_id=5247213725080890199>©️</emoji> <b>Автор: </b>{author}"
         ),
         "searching_video": "<emoji document_id=5258274739041883702>🔍</emoji> Идёт поиск видео...",
@@ -126,12 +134,13 @@ class LazyYT(loader.Module):
             logger.info("[LazyYouTube | Update Checker] Проверка...")
             async with ClientSession() as session:
                 async with session.get(UPDATE_URL) as response:
-                    new_version_str: str = await response.text()
+                    new_version_str = await response.text()
+                    new_version_str = new_version_str.split("\n")[0]
                     if new_version_str.startswith("__version__"):
-                        version_line = new_version_str.split("=")[1]
-                        version_line = version_line.strip().split("#")[0]
-                        version_tuple = version_line.strip("() \n")
-                        new_version = tuple(map(int, version_tuple.split(",")))
+                        version_tuple = literal_eval(
+                            new_version_str.split("=")[1].strip()
+                        )
+                        new_version = tuple(map(int, version_tuple))
                         if new_version > __version__:
                             self.update_message = self.strings[
                                 "update_available"
@@ -139,18 +148,22 @@ class LazyYT(loader.Module):
                                 version=".".join(map(str, new_version)), url=UPDATE_URL
                             )
                             logger.info(
-                                f"[LazyYouTube] Новая версия обнаружена! "
-                                f"{new_version}"
+                                f"[LAzyYouTube] Новая версия обнаружена! {new_version} \n"
+                                "Пробую обновиться сам..."
                             )
+
+                            await self.invoke("dlmod", UPDATE_URL, peer=self.logchat)
                         else:
                             self.update_message = ""
         except Exception as e:
             await logger.exception(f"Ошибка проверки обновления: {e}")
 
     async def client_ready(self, client: CustomTelegramClient, db: Database) -> None:
-        self.client = client
-        self.gozilla_bot = await self.client.get_entity(self.gozilla_bot_username)
-        self.gozilla_bot_id = self.gozilla_bot.id
+        self.client: CustomTelegramClient = client
+        self.gozilla_bot: TypeInputPeer = await self.client.get_entity(
+            self.gozilla_bot_username
+        )
+        self.gozilla_bot_id: int = self.gozilla_bot.id
 
         history = await self.client(
             messages.SearchRequest(
@@ -180,7 +193,6 @@ class LazyYT(loader.Module):
         to_bot = await self.client.send_message(self.gozilla_bot, name)
 
         async def get_quality_handler(event: events.NewMessage.Event) -> None:
-            nonlocal m_video
             try:
                 if event.message.from_id == self.gozilla_bot_id:
                     if event.message.photo and event.message.reply_markup:
@@ -196,24 +208,26 @@ class LazyYT(loader.Module):
                 logger.exception(f"[LazyYouTube] Ошибка при получении видео:\n{e}")
 
         async def get_video_handler(event: events.NewMessage.Event) -> None:
-            nonlocal m_video, m_audio
+            nonlocal m_video, m_audio, mp3
             if event.message.from_id == self.gozilla_bot_id:
                 if mp3:
                     if event.message.audio:
                         m_audio = event.message
                 if event.message.video:
                     m_video = event.message
-                    e_trigger.set()
+                e_trigger.set()
 
         self.client.add_event_handler(
-            get_quality_handler, events.NewMessage(incoming=True)
+            get_quality_handler,
+            events.NewMessage(incoming=True, chats=self.gozilla_bot_id),
         )
         self.client.add_event_handler(
-            get_video_handler, events.NewMessage(incoming=True)
+            get_video_handler,
+            events.NewMessage(incoming=True, chats=self.gozilla_bot_id),
         )
 
         try:
-            await asyncio.wait_for(e_trigger.wait(), timeout=135)
+            await asyncio.wait_for(e_trigger.wait(), timeout=600)
         except asyncio.TimeoutError:
             await to_bot.delete()
             m_video = None
@@ -227,31 +241,39 @@ class LazyYT(loader.Module):
     @loader.command(ru_doc="[ссылка] - Скачивает видео из Ютуба", alias="ют")
     async def yt(self, message: Message) -> None:
         """[url] - Downloading video from YouTube"""
-        reply = message.get_reply_message()
-        args = utils.get_args_raw(message)
-        if not args:
+        reply_to: Optional[Message] = await message.get_reply_message()
+        args: str = utils.get_args_raw(message)
+        query: str = ""
+        if not args and not reply_to:
             await utils.answer(message, self.strings["no_link"] + self.update_message)
             return
-        m = await utils.answer(
-            message, self.strings["searching_video"] + self.update_message
-        )
         try:
-            video = await self._find_by_url(args)
+            query = (
+                reply_to.text
+                if reply_to is not None
+                and (("youtube" in reply_to.text) or ("youtu" in reply_to.text))
+                else args
+            )
+            m = await utils.answer(
+                message, self.strings["searching_video"] + self.update_message
+            )
+            video = await self._find_by_url(query)
         except YouBlockedUserError:
             await utils.answer(message, self.strings["blocked"] + self.update_message)
             return
         if not video:
             await utils.answer(message, self.strings["no_video"] + self.update_message)
             return
-        await self.client.send_file(
-            message.peer_id,
+        await utils.answer_file(
+            m,
             video,
             caption=(self.strings["your_video"] + self.update_message).format(
+                link=query,
                 name=self.current_video_name,
                 quality=self.current_video_quality,
                 author=self.current_video_author,
             ),
-            reply=reply,
+            reply_to=reply_to,
         )
         await m.delete()
         return
@@ -259,31 +281,39 @@ class LazyYT(loader.Module):
     @loader.command(ru_doc="[ссылка] - Скачивает музыку из Ютуба", alias="ютм")
     async def ytm(self, message: Message) -> None:
         """[url] - Downloading audio from YouTube"""
-        reply = message.get_reply_message()
-        args = utils.get_args_raw(message)
-        if not args:
+        reply_to: Optional[Message] = await message.get_reply_message()
+        args: str = utils.get_args_raw(message)
+        query: str = ""
+        if not args and not reply_to:
             await utils.answer(message, self.strings["no_link"] + self.update_message)
             return
-        m = await utils.answer(
-            message, self.strings["searching_audio"] + self.update_message
-        )
+
         try:
-            audio = await self._find_by_url(args, True)
+            query = (
+                reply_to.text
+                if reply_to is not None
+                and (("youtube" in reply_to.text) or ("youtu" in reply_to.text))
+                else args
+            )
+            m = await utils.answer(
+                message, self.strings["searching_audio"] + self.update_message
+            )
+            audio = await self._find_by_url(query, True)
         except YouBlockedUserError:
             await utils.answer(message, self.strings["blocked"] + self.update_message)
             return
         if not audio:
             await utils.answer(message, self.strings["no_audio"] + self.update_message)
             return
-        await self.client.send_file(
-            message.peer_id,
+        await utils.answer_file(
+            m,
             audio,
             caption=(self.strings["your_audio"] + self.update_message).format(
+                link=query,
                 name=self.current_video_name,
-                quality=self.current_video_quality,
                 author=self.current_video_author,
             ),
-            reply=reply,
+            reply_to=reply_to,
         )
         await m.delete()
         return
