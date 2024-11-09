@@ -1,4 +1,4 @@
-__version__ = (1, 6, 8)
+__version__ = (1, 6, 9)
 
 # meta developer: @eremod
 # Отдельная благодарность: @stupid_alien_mods
@@ -34,7 +34,7 @@ from aiohttp import ClientSession
 from time import time
 from ast import literal_eval
 
-UPDATE_URL = "https://raw.githubusercontent.com/eremeyko/ne_Hikka/refs/heads/master/BIO%20Audio.py"
+UPDATE_URL = "https://github.com/eremeyko/ne_Hikka/raw/master/BIOAudio.py"
 logger = logging.getLogger(__name__)
 
 
@@ -299,34 +299,28 @@ class LastFM(loader.Module):
         return {}
 
     @loader.loop(interval=10800, autostart=True, wait_before=False)
-    async def check_for_updates(self):
+    async def check_for_updates(self) -> None:
         try:
-            logger.debug(f"[BIO AUDIO | проверка обновы] Проверка...")
+            logger.info("[BioAudio | Update Checker] Проверка...")
             async with ClientSession() as session:
                 async with session.get(UPDATE_URL) as response:
                     new_version_str = await response.text()
-                    new_version_str = new_version_str.split("\n")[0]
-                    if new_version_str.startswith("__version__"):
-                        version_tuple = literal_eval(
-                            new_version_str.split("=")[1].strip()
+                    new_version_str = new_version_str.splitlines()[0].split("=")[1]
+                    version_tuple = literal_eval(new_version_str)
+                    if version_tuple > __version__:
+                        self.update_message = self.strings["update_available"].format(
+                            version=".".join(map(str, new_version_str)), url=UPDATE_URL
                         )
-                        new_version = tuple(map(int, version_tuple))
-                        if new_version > __version__:
-                            self.update_message = self.strings[
-                                "update_available"
-                            ].format(
-                                version=".".join(map(str, new_version)), url=UPDATE_URL
-                            )
-                            logger.debug(
-                                f"[BIO AUDIO] Новая версия обнаружена! {new_version} \n"
-                                "Пробую обновиться сам..."
-                            )
+                        logger.info(
+                            f"[BioAudio] Новая версия обнаружена! {new_version_str} \n"
+                            "Пробую обновиться сам..."
+                        )
 
-                            await self.invoke("dlmod", UPDATE_URL, peer=self.logchat)
-                        else:
-                            self.update_message = ""
+                        await self.invoke("dlmod", UPDATE_URL, peer=self.logchat)
+                    else:
+                        self.update_message = ""
         except Exception as e:
-            logger.error(f"Ошибка проверки обновления: {e}")
+            await logger.exception(f"Ошибка проверки обновления: {e}")
 
     async def _find_music(self, name: str) -> Optional[Message]:
         music: Optional[Message] = None
