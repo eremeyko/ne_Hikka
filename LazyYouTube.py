@@ -36,9 +36,7 @@ from telethon import events
 
 logger = logging.getLogger(f"LazyYT | {__version__}")
 
-UPDATE_URL: str = (
-    "https://raw.githubusercontent.com/eremeyko/ne_Hikka/refs/heads/master/LazyYouTube.py"
-)
+UPDATE_URL: str = "https://github.com/eremeyko/ne_Hikka/raw/master/LazyYouTube.py"
 
 
 @loader.tds
@@ -135,26 +133,20 @@ class LazyYT(loader.Module):
             async with ClientSession() as session:
                 async with session.get(UPDATE_URL) as response:
                     new_version_str = await response.text()
-                    new_version_str = new_version_str.split("\n")[0]
-                    if new_version_str.startswith("__version__"):
-                        version_tuple = literal_eval(
-                            new_version_str.split("=")[1].strip()
+                    new_version_str = new_version_str.splitlines()[0].split("=")[1]
+                    version_tuple = literal_eval(new_version_str)
+                    if version_tuple > __version__:
+                        self.update_message = self.strings["update_available"].format(
+                            version=".".join(map(str, new_version_str)), url=UPDATE_URL
                         )
-                        new_version = tuple(map(int, version_tuple))
-                        if new_version > __version__:
-                            self.update_message = self.strings[
-                                "update_available"
-                            ].format(
-                                version=".".join(map(str, new_version)), url=UPDATE_URL
-                            )
-                            logger.info(
-                                f"[LAzyYouTube] Новая версия обнаружена! {new_version} \n"
-                                "Пробую обновиться сам..."
-                            )
+                        logger.info(
+                            f"[LazyYouTube] Новая версия обнаружена! {new_version_str} \n"
+                            "Пробую обновиться сам..."
+                        )
 
-                            await self.invoke("dlmod", UPDATE_URL, peer=self.logchat)
-                        else:
-                            self.update_message = ""
+                        await self.invoke("dlmod", UPDATE_URL, peer=self.logchat)
+                    else:
+                        self.update_message = ""
         except Exception as e:
             await logger.exception(f"Ошибка проверки обновления: {e}")
 
@@ -227,7 +219,7 @@ class LazyYT(loader.Module):
         )
 
         try:
-            await asyncio.wait_for(e_trigger.wait(), timeout=600)
+            await asyncio.wait_for(e_trigger.wait(), timeout=135)
         except asyncio.TimeoutError:
             await to_bot.delete()
             m_video = None
