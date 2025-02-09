@@ -1,4 +1,4 @@
-__version__ = (1, 4, 0)
+__version__ = (1, 4, 1)
 # meta developer: @eremod
 #
 #
@@ -16,12 +16,13 @@ __version__ = (1, 4, 0)
 
 from aiohttp import ClientSession
 from json import dumps
-from hikkatl.types import Message
+from hikkatl.types import Message  # type: ignore
 from .. import loader, utils
+import logging
+from ast import literal_eval
 
-UPDATE_URL = (
-    "https://raw.githubusercontent.com/eremeyko/ne_Hikka/refs/heads/master/YaKeyGPT.py"
-)
+UPDATE_URL = "https://github.com/eremeyko/ne_Hikka/raw/master/YaKeyGPT.py"
+logger = logging.getLogger(__name__)
 
 
 @loader.tds
@@ -68,37 +69,50 @@ class YaKeyGPT(loader.Module):
             ),
         )
 
-        self.update_message = ""
+        self.update_message: str = ""
+        self.logchat: int = 0
 
     async def client_ready(self, client, db):
         self.client = client
         self.prefix = self.get_prefix()
+        logging.basicConfig(
+            level=logging.DEBUG if self.config["_logger"] else logging.ERROR
+        )
+        logger.debug(f"[YaKeyGPT] успешно включено")
+        self.logchat = next(
+            filter(
+                None,
+                [
+                    d.id if d.title == "hikka-logs" or "heroku-logs" else ""
+                    async for d in self.client.iter_dialogs()
+                ],
+            )
+        )
 
     @loader.loop(interval=10800, autostart=True, wait_before=False)
-    async def check_for_updates(self):
+    async def check_for_updates(self) -> None:
         try:
-            print("[YaKeyGPT | Update Checker] Проверка...")
+            if not self.config["check_updates"]:
+                return
+            logger.info("[YaKeyGPT | Update Checker] Checking for updates...")
             async with ClientSession() as session:
                 async with session.get(UPDATE_URL) as response:
                     new_version_str = await response.text()
-                    if new_version_str.startswith("__version__"):
-                        version_line = new_version_str.split("=")[1]
-                        version_line = version_line.strip().split("#")[0]
-                        version_tuple = version_line.strip("() \n")
-                        new_version = tuple(map(int, version_tuple.split(",")))
-                        if new_version > __version__:
-                            self.update_message = self.strings[
-                                "update_available"
-                            ].format(
-                                version=".".join(map(str, new_version)), url=UPDATE_URL
-                            )
-                            print(
-                                f"[YaKeyGPT] Новая версия обнаружена! " f"{new_version}"
-                            )
-                        else:
-                            self.update_message = ""
+                    new_version_str = new_version_str.splitlines()[0].split("=")[1]
+                    version_tuple = literal_eval(new_version_str)
+                    if version_tuple > __version__:
+                        self.update_message = self.strings["update_available"].format(
+                            version=".".join(map(str, version_tuple)), url=UPDATE_URL
+                        )
+                        logger.info(
+                            f"[YaKeyGPT] New version available! {version_tuple}\n"
+                            "Trying to update..."
+                        )
+                        await self.invoke("dlmod", UPDATE_URL, peer=self.logchat)
+                    else:
+                        self.update_message = ""
         except Exception as e:
-            await self._log(f"Ошибка проверки обновления: {e}")
+            logger.exception(f"Error in update checker: {e}")
 
     async def send_request(self, method, text):
         url = f"https://keyboard.yandex.net/gpt/{method}"
@@ -177,18 +191,23 @@ class YaKeyGPT(loader.Module):
     async def watcher(self, message: Message):
         if not self.get("yatext", False):
             return
+        if (
+            message.forward
+            or message.post
+            or getattr(message, "from_scheduled", False)
+            or not message.out
+            or message.text.startswith(self.prefix)
+        ):
+            return
 
-        if message.out and not message.text.startswith(self.prefix):
-            text = message.text
-            methods_order = ["fix", "rewrite", "emoji"]
-            auto_methods = self.config["auto_methods"]
+        text = message.text
+        methods_order = ["fix", "rewrite", "emoji"]
+        auto_methods = self.config["auto_methods"]
 
-            enabled_methods = [
-                method for method in methods_order if method in auto_methods
-            ]
+        enabled_methods = [method for method in methods_order if method in auto_methods]
 
-            for method in enabled_methods:
-                response_data = await self.send_request(method, text)
-                text = response_data.get("response", self.strings["no_response"])
+        for method in enabled_methods:
+            response_data = await self.send_request(method, text)
+            text = response_data.get("response", self.strings["no_response"])
 
-            await utils.answer(message, text)
+        await utils.answer(message, text)
