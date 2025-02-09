@@ -1,4 +1,4 @@
-__version__ = (1, 7, 1)
+__version__ = (1, 7, 2)
 
 # meta developer: @eremod
 # Отдельная благодарность: @stupid_alien_mods
@@ -134,7 +134,7 @@ class LastFM(loader.Module):
         self.client: Optional[CustomTelegramClient] = None
         self._track_cache = {}
         self._last_request_time = 0
-        self._cache_lifetime = 3  # кэш живет 3 секунды
+        self._cache_lifetime = 3
 
         self.config = loader.ModuleConfig(
             loader.ConfigValue(
@@ -198,7 +198,7 @@ class LastFM(loader.Module):
             filter(
                 None,
                 [
-                    d.id if d.title == "hikka-logs" else ""
+                    d.id if d.title == "hikka-logs" or "heroku-logs" else ""
                     async for d in self.client.iter_dialogs()
                 ],
             )
@@ -220,63 +220,68 @@ class LastFM(loader.Module):
         error_count = 0
         max_errors = 3
         base_timeout = self.config["sleep_time"][0]
-        
+
         while self.audio_status:
             try:
+                if not self.audio_status:
+                    logger.debug(
+                        "[BIO AUDIO] Скробблинг остановлен из-за выключенного статуса"
+                    )
+                    break
+
                 await self.update_bio()
-                error_count = 0  # Сбрасываем счетчик ошибок при успешном выполнении
-                
-                # Динамически регулируем timeout в зависимости от активности
+                error_count = 0
+
                 if self.previous_track:
-                    # Если трек играет, используем более короткий интервал
                     self.check_timeout = self.config["sleep_time"][1]
                 else:
-                    # Если нет активного трека, увеличиваем интервал
                     self.check_timeout = base_timeout
-                
+
             except Exception as e:
                 error_count += 1
                 logger.error(f"[BIO AUDIO] Ошибка в цикле скробблинга: {e}")
-                
+
                 if error_count >= max_errors:
-                    # При множественных ошибках увеличиваем timeout
-                    self.check_timeout = min(base_timeout * 2, 60)  # максимум 60 секунд
-                    error_count = 0  # Сбрасываем счетчик
-                
-                # Добавляем небольшую задержку при ошибках
+                    self.check_timeout = min(base_timeout * 2, 60)
+                    error_count = 0
+
                 await asyncio.sleep(5)
-            
+
             await asyncio.sleep(self.check_timeout)
 
     async def update_bio(self) -> None:
         logger.debug(f"[BIO AUDIO | обновление био] метод запущен")
         try:
             track_info = await self.playing_now(self.config["username"])
-            
+
             if track_info:
                 logger.debug("[BIO AUDIO | обновление био] инфа о треке получена")
                 self.check_timeout = self.config["sleep_time"][1]
-                
+
                 track_info = {
-                    'artist': track_info.get('artist', 'Unknown Artist'),
-                    'title': track_info.get('title', 'Unknown Title'),
-                    'album': track_info.get('album', '')
+                    "artist": track_info.get("artist", "Unknown Artist"),
+                    "title": track_info.get("title", "Unknown Title"),
+                    "album": track_info.get("album", ""),
                 }
-                
+
                 current_track = self.config["new_bio"].format(**track_info)
                 self.msearch = f"{track_info['artist']} - {track_info['title']}"
-                
+
                 if len(current_track) > self.cut:
-                    current_track = current_track[:self.cut-1] + "…"
-                
-                logger.debug(f"[BIO AUDIO | обновление био] сейчас играет - {current_track}")
-                
+                    current_track = current_track[: self.cut - 1] + "…"
+
+                logger.debug(
+                    f"[BIO AUDIO | обновление био] сейчас играет - {current_track}"
+                )
+
                 if self.previous_track != current_track:
                     logger.debug("[BIO AUDIO | обновление био] Обновление био...")
                     try:
                         await self.client(UpdateProfileRequest(about=current_track))
                         self.previous_track = current_track
-                        logger.debug("[BIO AUDIO | обновление био] био успешно обновлено")
+                        logger.debug(
+                            "[BIO AUDIO | обновление био] био успешно обновлено"
+                        )
                     except FloodWaitError as e:
                         logger.warning(f"[BIO AUDIO] Флуд-ожидание: {e.seconds} секунд")
                         await asyncio.sleep(e.seconds)
@@ -285,16 +290,22 @@ class LastFM(loader.Module):
             else:
                 logger.debug("[BIO AUDIO | обновление био] информации о треке нет")
                 self.check_timeout = self.config["sleep_time"][0]
-                
+
                 if self.previous_track:
                     try:
-                        await self.client(UpdateProfileRequest(about=self.config["old_bio"][:self.cut]))
+                        await self.client(
+                            UpdateProfileRequest(
+                                about=self.config["old_bio"][: self.cut]
+                            )
+                        )
                         self.previous_track = ""
                         self.msearch = ""
-                        logger.debug("[BIO AUDIO | обновление био] био сброшено на дефолтное")
+                        logger.debug(
+                            "[BIO AUDIO | обновление био] био сброшено на дефолтное"
+                        )
                     except Exception as e:
                         logger.error(f"[BIO AUDIO] Ошибка сброса био: {e}")
-                        
+
         except Exception as e:
             logger.error(f"[BIO AUDIO] Общая ошибка в update_bio: {e}")
             self.check_timeout = max(self.config["sleep_time"])
@@ -316,16 +327,18 @@ class LastFM(loader.Module):
             try:
                 async with ClientSession() as session:
                     async with session.get(
-                        "https://ws.audioscrobbler.com/2.0/", 
-                        params=params,
-                        timeout=10
+                        "https://ws.audioscrobbler.com/2.0/", params=params, timeout=10
                     ) as response:
                         if response.status == 429:  # Rate limit exceeded
-                            retry_after = int(response.headers.get('Retry-After', retry_delay))
-                            logger.warning(f"[BIO AUDIO] Достигнут рейт лимит, ожидание в {retry_after} секунд")
+                            retry_after = int(
+                                response.headers.get("Retry-After", retry_delay)
+                            )
+                            logger.warning(
+                                f"[BIO AUDIO] Достигнут рейт лимит, ожидание в {retry_after} секунд"
+                            )
                             await asyncio.sleep(retry_after)
                             continue
-                            
+
                         data = await response.json()
                         if "error" in data:
                             if data["error"] == 6:
@@ -335,50 +348,81 @@ class LastFM(loader.Module):
                                 logger.error("[BIO AUDIO] Invalid API key")
                                 return False
                             else:
-                                logger.error(f"[BIO AUDIO] Last.fm API ошика: {data.get('message', 'Unknown error')}")
+                                logger.error(
+                                    f"[BIO AUDIO] Last.fm API ошика: {data.get('message', 'Unknown error')}"
+                                )
                                 return False
                         return data
             except asyncio.TimeoutError:
-                logger.warning(f"[BIO AUDIO] Таймаут запроса. Попытка №{attempt + 1}/{max_retries}")
+                logger.warning(
+                    f"[BIO AUDIO] Таймаут запроса. Попытка №{attempt + 1}/{max_retries}"
+                )
                 await asyncio.sleep(retry_delay)
             except Exception as e:
                 logger.error(f"[BIO AUDIO] Ошибка запроса: {e}")
                 if attempt == max_retries - 1:
                     return False
                 await asyncio.sleep(retry_delay)
-        
+
         return False
 
     async def playing_now(self, user: str) -> dict | bool:
         current_time = time()
-        
-        # Используем кэш, если он не устарел
+
         if (current_time - self._last_request_time) < self._cache_lifetime:
-            cached_result = self._track_cache.get('current_track')
+            cached_result = self._track_cache.get("current_track")
             if cached_result is not None:
                 return cached_result
 
         try:
             request = await self._request("user.getrecenttracks", user=user)
-            if not request or 'recenttracks' not in request:
-                logger.error("[BIO AUDIO] Не удалось получить информацию о треке")
+
+            if not request:
+                logger.error("[BIO AUDIO] Нет ответа от Last.fm API")
                 return False
 
-            tracks = request.get('recenttracks', {}).get('track', [])
+            if not isinstance(request, dict):
+                logger.error(f"[BIO AUDIO] Некорректный формат ответа: {type(request)}")
+                return False
+
+            if "error" in request:
+                error_msg = request.get("message", "Неизвестная ошибка")
+                logger.error(f"[BIO AUDIO] Ошибка Last.fm API: {error_msg}")
+                return False
+
+            if "recenttracks" not in request:
+                logger.error("[BIO AUDIO] В ответе отсутствует ключ 'recenttracks'")
+                logger.debug(f"[BIO AUDIO] Содержимое ответа: {request}")
+                return False
+
+            tracks = request["recenttracks"].get("track", [])
             if not tracks:
                 logger.debug("[BIO AUDIO] Список треков пуст")
                 self._update_cache({})
                 return {}
 
-            recent_track = tracks[0]
-            if not recent_track:
-                logger.debug("[BIO AUDIO] Нет информации о последнем треке")
+            if not isinstance(tracks, list):
+                logger.error(
+                    f"[BIO AUDIO] Некорректный формат списка треков: {type(tracks)}"
+                )
+                return False
+
+            try:
+                recent_track = tracks[0]
+            except IndexError:
+                logger.error("[BIO AUDIO] Список треков пуст (IndexError)")
                 self._update_cache({})
                 return {}
 
-            # Проверяем, играет ли трек сейчас
+            if not isinstance(recent_track, dict):
+                logger.error(
+                    f"[BIO AUDIO] Некорректный формат трека: {type(recent_track)}"
+                )
+                return False
+
             is_playing = (
-                "@attr" in recent_track 
+                "@attr" in recent_track
+                and isinstance(recent_track["@attr"], dict)
                 and recent_track["@attr"].get("nowplaying") == "true"
             )
 
@@ -387,21 +431,38 @@ class LastFM(loader.Module):
                 self._update_cache({})
                 return {}
 
+            artist_info = recent_track.get("artist", {})
+            artist_name = (
+                artist_info.get("#text", "Unknown Artist")
+                if isinstance(artist_info, dict)
+                else str(artist_info)
+            )
+
+            album_info = recent_track.get("album", {})
+            album_name = (
+                album_info.get("#text", "")
+                if isinstance(album_info, dict)
+                else str(album_info)
+            )
+
             track_info = {
-                'artist': recent_track.get('artist', {}).get('#text', 'Unknown Artist'),
-                'title': recent_track.get('name', 'Unknown Title'),
-                'album': recent_track.get('album', {}).get('#text', '')
+                "artist": artist_name,
+                "title": recent_track.get("name", "Unknown Title"),
+                "album": album_name,
             }
-            
+
             self._update_cache(track_info)
             return track_info
 
         except Exception as e:
-            logger.error(f"[BIO AUDIO] Ошибка при получении информации о треке: {e}")
+            logger.error(
+                f"[BIO AUDIO] Ошибка при получении информации о треке: {str(e)}"
+            )
+            logger.debug(f"[BIO AUDIO] Полная информация об ошибке:", exc_info=True)
             return False
 
     def _update_cache(self, track_info: dict) -> None:
-        self._track_cache['current_track'] = track_info
+        self._track_cache["current_track"] = track_info
         self._last_request_time = time()
 
     async def _find_music(self, name: str) -> Optional[Message]:
@@ -568,6 +629,19 @@ class LastFM(loader.Module):
         status = (
             self.strings["enabled"] if self.audio_status else self.strings["disabled"]
         )
+
+        if not self.audio_status:
+            try:
+                await self.client(
+                    UpdateProfileRequest(about=self.config["old_bio"][: self.cut])
+                )
+                self.previous_track = ""
+                self.msearch = ""
+                logger.debug("[BIO AUDIO] Био восстановлено при выключении трансляции")
+            except Exception as e:
+                logger.error(
+                    f"[BIO AUDIO] Ошибка восстановления био при выключении: {e}"
+                )
 
         if self.audio_status and not self.scrobbling_task:
             self.scrobbling_task = asyncio.create_task(self.scrobbling_loop())
