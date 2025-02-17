@@ -1,4 +1,4 @@
-__version__ = (1, 8, 7)
+__version__ = (1, 8, 8)
 # meta developer: @eremod
 #
 #
@@ -36,6 +36,7 @@ from telethon import events
 
 logger = logging.getLogger(f"LazyYT | {__version__}")
 UPDATE_URL: str = "https://github.com/eremeyko/ne_Hikka/raw/master/LazyYouTube.py"
+
 
 @loader.tds
 class LazyYT(loader.Module):
@@ -137,6 +138,9 @@ class LazyYT(loader.Module):
             "Это видео сейчас нельзя скачать.\n"
             "Попробуйте через {minutes} минут или скачайте другое видео"
         ),
+        "ghost": (
+            "<emoji document_id=5213460324425935151>❌</emoji> <b>Это видео закрыто для публичного доступа!</b>"
+        ),
         "_cmd_doc_yt": "[ссылка] - Скачивает видео из Ютуба",
         "_cmd_doc_ytm": "[ссылка] - Скачивает музыку из Ютуба",
     }
@@ -183,6 +187,9 @@ class LazyYT(loader.Module):
             "<emoji document_id=5220197908342648622>❗️</emoji> <b>Антиспам!</b>\n"
             "<emoji document_id=5985616167740379273>⏰</emoji> "
             "Спробуйте ще раз через <code>{}</code> хвилин або завантажте інше відео"
+        ),
+        "ghost": (
+            "<emoji document_id=5213460324425935151>❌</emoji> <b>Це відео закрито для публічного доступу!</b>"
         ),
         "_cmd_doc_yt": "[посилання] - Завантажує відео з YouTube",
         "_cmd_doc_ytm": "[посилання] - Завантажує аудіо з YouTube",
@@ -231,6 +238,9 @@ class LazyYT(loader.Module):
             "<emoji document_id=5985616167740379273>⏰</emoji> "
             "Réessayez dans <code>{}</code> minutes ou téléchargez une autre vidéo"
         ),
+        "ghost": (
+            "<emoji document_id=5213460324425935151>❌</emoji> <b>Ce vidéo est fermée au public!</b>"
+        ),
         "_cmd_doc_yt": "[url] - Télécharge une vidéo depuis YouTube",
         "_cmd_doc_ytm": "[url] - Télécharge l'audio depuis YouTube",
     }
@@ -277,6 +287,9 @@ class LazyYT(loader.Module):
             "<emoji document_id=5220197908342648622>❗️</emoji> <b>Antispam!</b>\n"
             "<emoji document_id=5985616167740379273>⏰</emoji> "
             "Riprova tra <code>{}</code> minuti o scarica un altro video"
+        ),
+        "ghost": (
+            "<emoji document_id=5213460324425935151>❌</emoji> <b>Questo video è chiuso al pubblico!</b>"
         ),
         "_cmd_doc_yt": "[url] - Scarica video da YouTube",
         "_cmd_doc_ytm": "[url] - Scarica audio da YouTube",
@@ -325,6 +338,9 @@ class LazyYT(loader.Module):
             "<emoji document_id=5985616167740379273>⏰</emoji> "
             "Versuche es in <code>{}</code> Minuten erneut oder lade ein anderes Video herunter"
         ),
+        "ghost": (
+            "<emoji document_id=5213460324425935151>❌</emoji> <b>Dieses Video ist für den öffentlichen Zugang geschlossen!</b>"
+        ),
         "_cmd_doc_yt": "[url] - Lädt Video von YouTube herunter",
         "_cmd_doc_ytm": "[url] - Lädt Audio von YouTube herunter",
     }
@@ -371,6 +387,9 @@ class LazyYT(loader.Module):
             "<emoji document_id=5220197908342648622>❗️</emoji> <b>Antispam!</b>\n"
             "<emoji document_id=5985616167740379273>⏰</emoji> "
             "<code>{}</code> dakika sonra tekrar deneyin veya başka bir video indirin"
+        ),
+        "ghost": (
+            "<emoji document_id=5213460324425935151>❌</emoji> <b>Bu video herkes için kapatıldı!</b>"
         ),
         "_cmd_doc_yt": "[url] - YouTube'dan video indirir",
         "_cmd_doc_ytm": "[url] - YouTube'dan ses indirir",
@@ -419,6 +438,9 @@ class LazyYT(loader.Module):
             "<emoji document_id=5985616167740379273>⏰</emoji> "
             "<code>{}</code> daqiqa ichida qayta urinib ko'ring yoki boshqa video yuklab oling"
         ),
+        "ghost": (
+            "<emoji document_id=5213460324425935151>❌</emoji> <b>Bu video umumiy mulk uchun yopildi!</b>"
+        ),
         "_cmd_doc_yt": "[havola] - YouTube'dan video yuklash",
         "_cmd_doc_ytm": "[havola] - YouTube'dan audio yuklash",
     }
@@ -465,6 +487,9 @@ class LazyYT(loader.Module):
             "<emoji document_id=5220197908342648622>❗️</emoji> <b>¡Antispam!</b>\n"
             "<emoji document_id=5985616167740379273>⏰</emoji> "
             "Vuelve a intentarlo en <code>{}</code> minutos o descarga otro video"
+        ),
+        "ghost": (
+            "<emoji document_id=5213460324425935151>❌</emoji> <b>¡Este video está cerrado al público!</b>"
         ),
         "_cmd_doc_yt": "[url] - Descarga video de YouTube",
         "_cmd_doc_ytm": "[url] - Descarga audio de YouTube",
@@ -513,6 +538,9 @@ class LazyYT(loader.Module):
             "<emoji document_id=5985616167740379273>⏰</emoji> "
             "<code>{}</code> минуттан кейін қайта байқап көріңіз немесе басқа бейне жүктеп алыңыз"
         ),
+        "ghost": (
+            "<emoji document_id=5213460324425935151>❌</emoji> <b>Бұл бейне қолжетімді емес!</b>"
+        ),
         "_cmd_doc_yt": "[сілтеме] - YouTube-тен бейне жүктеу",
         "_cmd_doc_ytm": "[сілтеме] - YouTube-тен аудио жүктеу",
     }
@@ -560,10 +588,12 @@ class LazyYT(loader.Module):
             "<emoji document_id=5985616167740379273>⏰</emoji> "
             "<code>{}</code> минуттан соң яңадан теләп карагыз яки башка видеоны йөкләгез"
         ),
+        "ghost": (
+            "<emoji document_id=5213460324425935151>❌</emoji> <b>Бұл бейне қолжетімді емес!</b>"
+        ),
         "_cmd_doc_yt": "[сылтама] - YouTube'тан видео йөкләү",
         "_cmd_doc_ytm": "[сылтама] - YouTube'тан аудио йөкләү",
     }
-
 
     def __init__(self) -> None:
         self.config = loader.ModuleConfig(
@@ -583,10 +613,10 @@ class LazyYT(loader.Module):
 
     def _is_youtube_url(self, url: str) -> bool:
         patterns = [
-            r'^(?:https?://)?(?:www\.)?(?:youtube\.com|youtu\.?be)/.+$',
-            r'^(?:https?://)?(?:www\.)?youtube\.com/watch\?v=[\w-]+',
-            r'^(?:https?://)?(?:www\.)?youtu\.be/[\w-]+',
-            r'^(?:https?://)?(?:www\.)?youtube\.com/shorts/[\w-]+',
+            r"^(?:https?://)?(?:www\.)?(?:youtube\.com|youtu\.?be)/.+$",
+            r"^(?:https?://)?(?:www\.)?youtube\.com/watch\?v=[\w-]+",
+            r"^(?:https?://)?(?:www\.)?youtu\.be/[\w-]+",
+            r"^(?:https?://)?(?:www\.)?youtube\.com/shorts/[\w-]+",
         ]
         return any(search(pattern, url) for pattern in patterns)
 
@@ -619,16 +649,25 @@ class LazyYT(loader.Module):
         self.current_video_quality = quality
         self.current_video_author = author
 
-    async def _get_url(self, message: Message, reply_to: Optional[Message]) -> Optional[str]:
+    async def _get_url(
+        self, message: Message, reply_to: Optional[Message]
+    ) -> Optional[str]:
         if args := utils.get_args_raw(message):
             return args
-        
+
         if reply_to:
             if reply_to.raw_text:
                 return reply_to.raw_text
             if reply_to.entities:
-                return next((entity.url for entity in reply_to.entities if hasattr(entity, "url")), None)
-        
+                return next(
+                    (
+                        entity.url
+                        for entity in reply_to.entities
+                        if hasattr(entity, "url")
+                    ),
+                    None,
+                )
+
         return None
 
     @loader.loop(interval=10800, autostart=True, wait_before=False)
@@ -644,13 +683,12 @@ class LazyYT(loader.Module):
                     version_tuple = literal_eval(new_version_str)
                     if version_tuple > __version__:
                         self.update_message = self.strings["update_available"].format(
-                            version=".".join(map(str, version_tuple)), 
-                            url=UPDATE_URL
+                            version=".".join(map(str, version_tuple)), url=UPDATE_URL
                         )
                         logger.info(
                             f"[LazyYouTube] New version available! {version_tuple}\n"
                             "Trying to update..."
-                                    )
+                        )
                         await self.invoke("dlmod", UPDATE_URL, peer=self.logchat)
                     else:
                         self.update_message = ""
@@ -659,9 +697,7 @@ class LazyYT(loader.Module):
 
     async def client_ready(self, client: CustomTelegramClient, db: Database) -> None:
         self.client: CustomTelegramClient = client
-        self.gozilla_bot: TypeInputPeer = await self.client.get_entity(
-            "Gozilla_bot"
-        )
+        self.gozilla_bot: TypeInputPeer = await self.client.get_entity("Gozilla_bot")
         self.gozilla_bot_id: int = self.gozilla_bot.id
 
         history = await self.client(
@@ -684,7 +720,9 @@ class LazyYT(loader.Module):
             await self.client.send_message(entity=self.gozilla_bot, message="/start")
             await utils.dnd(self.client, peer=PeerUser(841589476), archive=False)
 
-    async def _find_by_url(self, name: str, mp3: bool = False, m: Optional[Message] = None) -> Optional[Message]:
+    async def _find_by_url(
+        self, name: str, mp3: bool = False, m: Optional[Message] = None
+    ) -> Optional[Message]:
         media_message = None
         button_clicked = False
         processing_complete = asyncio.Event()
@@ -693,18 +731,35 @@ class LazyYT(loader.Module):
         async def get_quality_handler(event: events.NewMessage.Event) -> None:
             nonlocal media_message, button_clicked
             try:
-                if event.message.from_id == self.gozilla_bot_id and not processing_complete.is_set():
-                    if "Antispam" in getattr(event.message, 'message', '') or "Antispam" in getattr(event, 'text', ''):
-                        text = event.message.message if hasattr(event.message, 'message') else event.text
-                        if match := search(r'(\d+)\s*minutes', text):
+                if (
+                    event.message.from_id == self.gozilla_bot_id
+                    and not processing_complete.is_set()
+                ):
+                    if "👻" in getattr(event.message, "message", "") or "👻" in getattr(
+                        event, "text", ""
+                    ):
+                        logger.info("👻 Perhaps it is closed for public access")
+                        raise ValueError("👻 Perhaps it is closed for public access")
+                    if "Antispam" in getattr(
+                        event.message, "message", ""
+                    ) or "Antispam" in getattr(event, "text", ""):
+                        text = (
+                            event.message.message
+                            if hasattr(event.message, "message")
+                            else event.text
+                        )
+                        if match := search(r"(\d+)\s*minutes", text):
                             minutes = match.group(1)
                             try:
                                 await utils.answer(
                                     m,
-                                    self.strings("antispam").format(minutes=minutes) + self.update_message
+                                    self.strings("antispam").format(minutes=minutes)
+                                    + self.update_message,
                                 )
                             except Exception as e:
-                                logger.exception(f"Error updating antispam message: {e}")
+                                logger.exception(
+                                    f"Error updating antispam message: {e}"
+                                )
                             raise ValueError(f"antispam:{minutes}")
                         return
 
@@ -713,20 +768,25 @@ class LazyYT(loader.Module):
                         try:
                             self._update_media_info(
                                 name=event.message.text.split("\n")[0],
-                                quality=event.message.reply_markup.rows[-2].buttons[0].text.split("-")[0][2:],
-                                author=event.message.text.split("\n")[3][2:]
+                                quality=event.message.reply_markup.rows[-2]
+                                .buttons[0]
+                                .text.split("-")[0][2:],
+                                author=event.message.text.split("\n")[3][2:],
                             )
                             await event.message.click((-2 if not mp3 else -1), 0)
                         except Exception as e:
                             logger.exception(f"Error handling preview: {e}")
                             raise
                         return
-                    
-                    if ((mp3 and event.message.audio) or (not mp3 and event.message.video)) and not media_message:
+
+                    if (
+                        (mp3 and event.message.audio)
+                        or (not mp3 and event.message.video)
+                    ) and not media_message:
                         media_message = event.message
                         processing_complete.set()
-                        return    
-            
+                        return
+
             except Exception as e:
                 if isinstance(e, ValueError) and "antispam:" in str(e):
                     raise
@@ -737,13 +797,13 @@ class LazyYT(loader.Module):
             self.client.add_event_handler(get_quality_handler)
             await self.client.send_message(self.gozilla_bot, name)
             await asyncio.sleep(0.5)
-            
+
             try:
                 await asyncio.wait_for(processing_complete.wait(), timeout=30)
             except asyncio.TimeoutError:
                 logger.warning("Processing timeout")
                 return None
-            
+
             return media_message
         finally:
             self.client.remove_event_handler(get_quality_handler)
@@ -758,8 +818,10 @@ class LazyYT(loader.Module):
             return await utils.answer(message, self.strings("not_youtube"))
 
         try:
-            m = await utils.answer(message, self.strings("searching_video") + self.update_message)
-            
+            m = await utils.answer(
+                message, self.strings("searching_video") + self.update_message
+            )
+
             if result := await self._find_by_url(name=url, mp3=False, m=m):
                 await utils.answer_file(
                     message=m,
@@ -774,14 +836,19 @@ class LazyYT(loader.Module):
                     reply_to=reply_to,
                 )
         except YouBlockedUserError:
-            await utils.answer(message, self.strings["blocked_bot"] + self.update_message)
+            await utils.answer(
+                message, self.strings["blocked_bot"] + self.update_message
+            )
         except ValueError as e:
             if str(e).startswith("antispam:"):
                 minutes = str(e).split(":")[1]
                 await utils.answer(
                     message,
-                    self.strings("antispam").format(minutes=minutes) + self.update_message
+                    self.strings("antispam").format(minutes=minutes)
+                    + self.update_message,
                 )
+            elif str(e).startswith("👻"):
+                await utils.answer(message, self.strings("ghost") + self.update_message)
             else:
                 logger.exception("Unexpected ValueError in yt command")
                 raise
@@ -800,7 +867,9 @@ class LazyYT(loader.Module):
             return await utils.answer(message, self.strings("not_youtube"))
 
         try:
-            m = await utils.answer(message, self.strings("searching_audio") + self.update_message)
+            m = await utils.answer(
+                message, self.strings("searching_audio") + self.update_message
+            )
 
             if result := await self._find_by_url(name=url, mp3=True, m=m):
                 await utils.answer_file(
@@ -815,13 +884,16 @@ class LazyYT(loader.Module):
                     reply_to=reply_to,
                 )
         except YouBlockedUserError:
-            await utils.answer(message, self.strings["blocked_bot"] + self.update_message)
+            await utils.answer(
+                message, self.strings["blocked_bot"] + self.update_message
+            )
         except ValueError as e:
             if str(e).startswith("antispam:"):
                 minutes = str(e).split(":")[1]
                 await utils.answer(
                     message,
-                    self.strings("antispam").format(minutes=minutes) + self.update_message
+                    self.strings("antispam").format(minutes=minutes)
+                    + self.update_message,
                 )
             else:
                 logger.exception("Unexpected ValueError in ytm command")
