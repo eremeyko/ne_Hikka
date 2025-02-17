@@ -1,4 +1,4 @@
-__version__ = (1, 8, 8)
+__version__ = (1, 8, 8.1)
 # meta developer: @eremod
 #
 #
@@ -610,6 +610,7 @@ class LazyYT(loader.Module):
         self._current_video_quality = ""
         self._current_video_author = ""
         self.update_message = ""
+        self.logchat = 0
 
     def _is_youtube_url(self, url: str) -> bool:
         patterns = [
@@ -699,6 +700,17 @@ class LazyYT(loader.Module):
         self.client: CustomTelegramClient = client
         self.gozilla_bot: TypeInputPeer = await self.client.get_entity("Gozilla_bot")
         self.gozilla_bot_id: int = self.gozilla_bot.id
+
+        self.logchat = next(
+            filter(
+                None,
+                [
+                    d.id if d.title == "hikka-logs" or "heroku-logs" else ""
+                    async for d in self.client.iter_dialogs()
+                ],
+            )
+        )
+
 
         history = await self.client(
             messages.SearchRequest(
