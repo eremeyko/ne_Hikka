@@ -11,6 +11,7 @@
 - [LazyTikTok](https://github.com/eremeyko/ne_Hikka/blob/master/LazyTikTok.py) - Скачивает Видео и Музыку из ТикТока.
 - [huificinator](https://github.com/eremeyko/ne_Hikka/blob/master/huificinator.py) - "Хуифицирует" сообщения.
 - [LazyYouTube](https://github.com/eremeyko/ne_Hikka/blob/master/LazyYouTube.py) - Скачивает Видео и Аудио из Ютуба.
+- [Emoji Cypher.py](https://github.com/eremeyko/ne_Hikka/blob/master/emoji.py) - Шифрует\Дешифрует сообщение с эмодзи.
 ---
 
 **О разработчике:**
